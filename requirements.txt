@@ -1,0 +1,8 @@
+pyrogram==2.0.106
+tgcrypto==1.2.5
+ollama
+python-dotenv
+Pillow
+PyYAML
+opencv-python-headless
+
