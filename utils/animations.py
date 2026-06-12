@@ -4,7 +4,9 @@ import cv2
 def extract_gif_frames(path: str, n: int = 3, size: int = 240) -> list[str]:
     cap = cv2.VideoCapture(path)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    indices = [int(total * i / n) for i in range(n)]
+    margin = int(total * 0.05)
+    start, end = margin, total - margin
+    indices = [int(start + (end - start) * i / (n - 1)) for i in range(n)] if n > 1 else [total // 2]
     frames = []
     for idx in indices:
         cap.set(cv2.CAP_PROP_POS_FRAMES, idx)
