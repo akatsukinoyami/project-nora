@@ -37,7 +37,7 @@ cp .env.example .env
 ## Конфигурация
 
 | Переменная | По умолчанию | Описание |
-|---|---|---|
+| --- | --- | --- |
 | `BOT_TOKEN` | — | Токен бота от [@BotFather](https://t.me/BotFather) |
 | `API_ID` | — | Telegram API ID с [my.telegram.org](https://my.telegram.org) |
 | `API_HASH` | — | Telegram API hash |
@@ -45,6 +45,19 @@ cp .env.example .env
 | `OLLAMA_MODEL` | `gemma3:4b` | Название модели |
 | `PERSONAS_FILE` | `personas.yaml` | Путь к файлу персон |
 | `PERSONA_KEY` | `default` | Активная персона |
+
+## Команды
+
+Для BotFather (`/setcommands`):
+
+```text
+ping - проверить, живой ли бот
+allow - разрешить боту отвечать в этом чате (админ)
+deny - запретить боту отвечать в этом чате (админ)
+persona - показать текущую персону
+personas - список всех доступных персон
+persona_set - сменить персону для этого чата (админ)
+```
 
 ## Запуск
 
@@ -60,7 +73,7 @@ python app.py
 
 ## Структура проекта
 
-```
+```text
 app.py              — точка входа, хендлеры, фильтры
 personas.yaml       — персонажи
 utils/

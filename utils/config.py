@@ -14,6 +14,8 @@ API_HASH = os.getenv("API_HASH")
 
 PERSONAS_FILE = os.getenv("PERSONAS_FILE", "personas.yaml")
 PERSONA_KEY = os.getenv("PERSONA_KEY", "default")
+CHATS_FILE = os.getenv("CHATS_FILE", "chats.json")
+ALLOWED_USERS = [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip()]
 
 RANDOM_REPLY_CHANCE = 0.05
 

@@ -15,6 +15,9 @@ __pycache__/
 # Downloads (temp media files)
 downloads/
 
+# Chat data
+chats.json
+
 # IDE
 .idea/
 .vscode/

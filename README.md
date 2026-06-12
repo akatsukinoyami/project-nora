@@ -37,7 +37,7 @@ cp .env.example .env
 ## Configuration
 
 | Variable | Default | Description |
-|---|---|---|
+| --- | --- | --- |
 | `BOT_TOKEN` | — | Telegram bot token from [@BotFather](https://t.me/BotFather) |
 | `API_ID` | — | Telegram API ID from [my.telegram.org](https://my.telegram.org) |
 | `API_HASH` | — | Telegram API hash |
@@ -45,6 +45,20 @@ cp .env.example .env
 | `OLLAMA_MODEL` | `gemma3:4b` | Model name |
 | `PERSONAS_FILE` | `personas.yaml` | Path to personas file |
 | `PERSONA_KEY` | `default` | Active persona key |
+
+## Commands
+
+For BotFather (`/setcommands`):
+
+```text
+ping - check if the bot is alive
+allow - enable the bot in this chat (admin)
+deny - disable the bot in this chat (admin)
+persona - show current persona
+personas - list all available personas
+persona_set - set persona for this chat (admin)
+chats - download chats.json (admin)
+```
 
 ## Running
 
@@ -60,7 +74,7 @@ To add a persona, add a new key to the YAML and set `PERSONA_KEY` in `.env`.
 
 ## Project Structure
 
-```
+```text
 app.py              — bot entry point, handlers, filters
 personas.yaml       — character personas
 utils/

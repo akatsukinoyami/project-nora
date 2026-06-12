@@ -90,6 +90,18 @@ async def msg_to_ollama(msg: Message, fallback_text: str = "Что на карт
     )
 
 
+async def ask_text(situation: str, system: str) -> str:
+    try:
+        resp = await _client.chat(model=OLLAMA_MODEL, messages=[
+            _promt(system, role="system"),
+            _promt(situation),
+        ])
+        return resp.message.content.strip()
+    except Exception as e:
+        logger.error("ollama error: %s", e)
+        return FALLBACK
+
+
 async def ask(system: str, message: Message, reply_to: Message | None = None) -> str:
     is_injection = _is_injection(message.text or message.caption)
     if is_injection:
