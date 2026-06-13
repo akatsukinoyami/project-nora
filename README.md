@@ -41,8 +41,8 @@ cp .env.example .env
 | `BOT_TOKEN` | — | Telegram bot token from [@BotFather](https://t.me/BotFather) |
 | `API_ID` | — | Telegram API ID from [my.telegram.org](https://my.telegram.org) |
 | `API_HASH` | — | Telegram API hash |
-| `OLLAMA_URL` | `http://localhost:11434` | Ollama host URL |
-| `OLLAMA_MODEL` | `gemma3:4b` | Model name |
+| `LLM_URL` | `http://localhost:11434` | LLM backend URL (Ollama, mlx_lm, etc.) |
+| `LLM_MODEL` | `gemma3:4b` | Model name |
 | `PERSONAS_FILE` | `personas.yaml` | Path to personas file |
 | `PERSONA_KEY` | `default` | Active persona key |
 
@@ -61,6 +61,15 @@ chats - download chats.json (admin)
 ```
 
 ## Running
+
+**1. Start Ollama and pull a model:**
+
+```bash
+ollama serve
+ollama pull gemma3:4b
+```
+
+**2. Run the bot:**
 
 ```bash
 python app.py

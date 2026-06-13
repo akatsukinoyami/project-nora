@@ -5,8 +5,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-OLLAMA_HOST = os.getenv("OLLAMA_URL", "http://localhost:11434").removesuffix("/v1")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+_base = os.getenv("LLM_URL", "http://localhost:11434").rstrip("/")
+LLM_BASE_URL = _base if _base.endswith("/v1") else _base + "/v1"
+LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 API_ID = int(os.getenv("API_ID"))
@@ -18,7 +19,6 @@ CHATS_FILE = os.getenv("CHATS_FILE", "chats.json")
 ALLOWED_USERS = [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip()]
 
 RANDOM_REPLY_CHANCE = 0.05
-
 
 FALLBACK = "Мяу... что-то пошло не так, ня. Попробуй ещё раз."
 

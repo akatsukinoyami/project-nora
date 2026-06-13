@@ -2,22 +2,23 @@ import logging
 import os
 from typing import Literal
 
-import ollama
+import openai
 from pyrogram.types import Message
 
 from utils.config import (
-    OLLAMA_HOST, 
-    OLLAMA_MODEL, 
+    LLM_BASE_URL,
+    LLM_MODEL,
     FALLBACK,
     INJECTION_RE,
-    VIDEO_SIZE_LIMIT
+    VIDEO_SIZE_LIMIT,
 )
 from utils.images import resize_image
 from utils.animations import extract_gif_frames
 
 logger = logging.getLogger(__name__)
 
-_client = ollama.AsyncClient(host=OLLAMA_HOST)
+_client = openai.AsyncOpenAI(base_url=LLM_BASE_URL, api_key="local")
+
 
 def _is_injection(text: str | None) -> bool:
     return bool(text and INJECTION_RE.search(text))
@@ -31,16 +32,19 @@ def _sender_name(msg: Message) -> str:
 
 
 def _promt(
-        content: str, 
-        images: list[str] | None = None, 
-        role: Literal["user", "assistant", "system"] = "user"
-    ) -> dict:
-    
-    base = {"role": role, "content": content}
-    if images:
-        base["images"] = images
-    return base
+    content: str,
+    images: list[str] | None = None,
+    role: Literal["user", "assistant", "system"] = "user",
+) -> dict:
+    if not images:
+        return {"role": role, "content": content}
 
+    parts = [{"type": "text", "text": content}]
+    parts += [
+        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images
+    ]
+    return {"role": role, "content": parts}
+    
 
 
 async def _extract_media(msg: Message) -> tuple[list[str], str]:
@@ -84,21 +88,19 @@ async def _extract_media(msg: Message) -> tuple[list[str], str]:
 async def msg_to_ollama(msg: Message, fallback_text: str = "Что на картинке?") -> dict:
     images, extra = await _extract_media(msg)
     body = (msg.text or msg.caption or "") + extra
-    return _promt(
-        f"{_sender_name(msg)}: {body if body else fallback_text}",
-        images,
-    )
+    return _promt(f"{_sender_name(msg)}: {body if body else fallback_text}", images)
+
+
+async def _chat(messages: list[dict]) -> str:
+    resp = await _client.chat.completions.create(model=LLM_MODEL, messages=messages)
+    return resp.choices[0].message.content.strip()
 
 
 async def ask_text(situation: str, system: str) -> str:
     try:
-        resp = await _client.chat(model=OLLAMA_MODEL, messages=[
-            _promt(system, role="system"),
-            _promt(situation),
-        ])
-        return resp.message.content.strip()
+        return await _chat([_promt(system, role="system"), _promt(situation)])
     except Exception as e:
-        logger.error("ollama error: %s", e)
+        logger.error("llm error: %s", e)
         return FALLBACK
 
 
@@ -120,8 +122,7 @@ async def ask(system: str, message: Message, reply_to: Message | None = None) ->
         messages.append(await msg_to_ollama(message))
 
     try:
-        resp = await _client.chat(model=OLLAMA_MODEL, messages=messages)
-        return resp.message.content.strip()
+        return await _chat(messages)
     except Exception as e:
-        logger.error("ollama error: %s", e)
+        logger.error("llm error: %s", e)
         return FALLBACK

@@ -41,8 +41,8 @@ cp .env.example .env
 | `BOT_TOKEN` | — | Токен бота от [@BotFather](https://t.me/BotFather) |
 | `API_ID` | — | Telegram API ID с [my.telegram.org](https://my.telegram.org) |
 | `API_HASH` | — | Telegram API hash |
-| `OLLAMA_URL` | `http://localhost:11434` | Адрес Ollama |
-| `OLLAMA_MODEL` | `gemma3:4b` | Название модели |
+| `LLM_URL` | `http://localhost:11434` | Адрес LLM бекенда (Ollama, mlx_lm и др.) |
+| `LLM_MODEL` | `gemma3:4b` | Название модели |
 | `PERSONAS_FILE` | `personas.yaml` | Путь к файлу персон |
 | `PERSONA_KEY` | `default` | Активная персона |
 
@@ -60,6 +60,15 @@ persona_set - сменить персону для этого чата (адми
 ```
 
 ## Запуск
+
+**1. Запустить Ollama и скачать модель:**
+
+```bash
+ollama serve
+ollama pull gemma3:4b
+```
+
+**2. Запустить бота:**
 
 ```bash
 python app.py
