@@ -1,7 +1,7 @@
 import base64
 import cv2
 
-def extract_gif_frames(path: str, n: int = 3, size: int = 240) -> list[str]:
+def extract_gif_frames(path: str, n: int = 3, size: int = 512) -> list[str]:
     cap = cv2.VideoCapture(path)
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     margin = int(total * 0.05)

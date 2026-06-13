@@ -4,16 +4,14 @@ import logging
 from pyrogram import Client, idle
 
 from utils import chats, state
-from utils.config import API_ID, API_HASH, BOT_TOKEN, CHATS_FILE, PERSONAS_FILE
+from utils.config import PYROGRAM_CONFIG, CHATS_FILE, PERSONAS_FILE
 
 logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
 logging.getLogger("utils.ai").setLevel(logging.INFO)
 
 app = Client(
     "small_ai_bot",
-    api_id=API_ID,
-    api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
+    **PYROGRAM_CONFIG,
     plugins=dict(root="plugins"),
 )
 

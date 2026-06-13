@@ -6,8 +6,9 @@ import openai
 from pyrogram.types import Message
 
 from utils.config import (
-    LLM_BASE_URL,
-    LLM_MODEL,
+    LLM_CONFIG,
+    LLM_VISION_CONFIG,
+    LLM_VISION_MODE,
     FALLBACK,
     INJECTION_RE,
     VIDEO_SIZE_LIMIT,
@@ -17,7 +18,8 @@ from utils.animations import extract_gif_frames
 
 logger = logging.getLogger(__name__)
 
-_client = openai.AsyncOpenAI(base_url=LLM_BASE_URL, api_key="local")
+_client = openai.AsyncOpenAI(base_url=LLM_CONFIG["url"], api_key=LLM_CONFIG["api_key"])
+_vision_client = openai.AsyncOpenAI(base_url=LLM_VISION_CONFIG["url"], api_key=LLM_VISION_CONFIG["api_key"])
 
 
 def _is_injection(text: str | None) -> bool:
@@ -85,14 +87,42 @@ async def _extract_media(msg: Message) -> tuple[list[str], str]:
     return images, extra
 
 
+async def _describe_images(images: list[str], context: str = "") -> str:
+    prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Кратко." if context else "Опиши что на изображениях. Извлеки текст если есть. Кратко."
+    parts = [{"type": "text", "text": prompt}]
+    parts += [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images]
+    try:
+        resp = await _vision_client.chat.completions.create(
+            model=LLM_VISION_CONFIG["model"],
+            messages=[{"role": "user", "content": parts}],
+            max_tokens=256,
+        )
+        return resp.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error("vision error: %s", e)
+        return ""
+
+
 async def msg_to_ollama(msg: Message, fallback_text: str = "Что на картинке?") -> dict:
     images, extra = await _extract_media(msg)
+
+    if images:
+        if LLM_VISION_MODE == "false":
+            images = []
+        elif LLM_VISION_MODE == "separate":
+            context = msg.text or msg.caption or ""
+            description = await _describe_images(images, context)
+            if description:
+                extra += f" [на медиа: {description}]"
+            images = []
+        # "same" — передаём images как есть
+
     body = (msg.text or msg.caption or "") + extra
     return _promt(f"{_sender_name(msg)}: {body if body else fallback_text}", images)
 
 
 async def _chat(messages: list[dict]) -> str:
-    resp = await _client.chat.completions.create(model=LLM_MODEL, messages=messages)
+    resp = await _client.chat.completions.create(model=LLM_CONFIG["model"], messages=messages)
     return resp.choices[0].message.content.strip()
 
 

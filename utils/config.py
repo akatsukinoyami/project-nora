@@ -5,13 +5,31 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-_base = os.getenv("LLM_URL", "http://localhost:11434").rstrip("/")
-LLM_BASE_URL = _base if _base.endswith("/v1") else _base + "/v1"
-LLM_MODEL = os.getenv("LLM_MODEL", "gemma3:4b")
+def _make_url(raw: str) -> str:
+    raw = raw.rstrip("/")
+    return raw if raw.endswith("/v1") else raw + "/v1"
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-API_ID = int(os.getenv("API_ID"))
-API_HASH = os.getenv("API_HASH")
+_base = os.getenv("LLM_URL", "http://localhost:11434")
+LLM_CONFIG = {
+    "url": _make_url(_base),
+    "model": os.getenv("LLM_MODEL", "gemma3:4b"),
+    "api_key": os.getenv("LLM_API_KEY", "local"),
+}
+
+_vision_base = os.getenv("LLM_VISION_URL")
+LLM_VISION_MODE = os.getenv("LLM_VISION", "same")  # false | same | separate
+LLM_VISION_CONFIG = {
+    "url": _make_url(_vision_base) if _vision_base else LLM_CONFIG["url"],
+    "model": os.getenv("LLM_VISION_MODEL", LLM_CONFIG["model"]),
+    "api_key": os.getenv("LLM_VISION_API_KEY", "local")
+}
+
+
+PYROGRAM_CONFIG = {
+    "api_id": int(os.getenv("API_ID")),
+    "api_hash": os.getenv("API_HASH"),
+    "bot_token": os.getenv("BOT_TOKEN"),
+}
 
 PERSONAS_FILE = os.getenv("PERSONAS_FILE", "personas.yaml")
 PERSONA_KEY = os.getenv("PERSONA_KEY", "default")
