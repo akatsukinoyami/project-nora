@@ -122,8 +122,11 @@ async def msg_to_ollama(msg: Message, fallback_text: str = "Что на карт
 
 
 async def _chat(messages: list[dict]) -> str:
+    logger.debug("→ LLM %s msgs=%d", LLM_CONFIG["url"], len(messages))
     resp = await _client.chat.completions.create(model=LLM_CONFIG["model"], messages=messages)
-    return resp.choices[0].message.content.strip()
+    result = resp.choices[0].message.content.strip()
+    logger.debug("← LLM %d chars", len(result))
+    return result
 
 
 async def ask_text(situation: str, system: str) -> str:
