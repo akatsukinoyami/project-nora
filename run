@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+cmd="${1:-help}"
+
+case "$cmd" in
+  start)
+    docker compose up -d
+    ;;
+  stop)
+    docker compose down
+    ;;
+  restart)
+    docker compose down && docker compose up -d
+    ;;
+  build)
+    docker compose build
+    ;;
+  deploy)
+    docker compose build && docker compose up -d
+    ;;
+  logs)
+    docker compose logs -f
+    ;;
+  pull-vision)
+    curl -X POST http://localhost:11434/api/pull \
+      -H "Content-Type: application/json" \
+      -d '{"name": "moondream:1.8b"}'
+    ;;
+  help|*)
+    echo "Usage: ./run <command>"
+    echo ""
+    echo "  start        Start the bot"
+    echo "  stop         Stop the bot"
+    echo "  restart      Restart the bot"
+    echo "  build        Build Docker image"
+    echo "  deploy       Build and start"
+    echo "  logs         Follow logs"
+    echo "  pull-vision  Pull moondream:1.8b vision model"
+    ;;
+esac
