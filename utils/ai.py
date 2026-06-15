@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from typing import Literal
 
 import openai
@@ -91,13 +92,20 @@ async def _describe_images(images: list[str], context: str = "") -> str:
     prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Кратко." if context else "Опиши что на изображениях. Извлеки текст если есть. Кратко."
     parts = [{"type": "text", "text": prompt}]
     parts += [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images]
+    logger.debug("→ vision %s context=%d chars", LLM_VISION_CONFIG["model"], len(context))
     try:
         resp = await _vision_client.chat.completions.create(
             model=LLM_VISION_CONFIG["model"],
             messages=[{"role": "user", "content": parts}],
             max_tokens=256,
+            extra_body={
+                "thinking_level": "none",
+                "reasoning_effort": "minimal",
+            },
         )
-        return resp.choices[0].message.content.strip()
+        result = resp.choices[0].message.content.strip()
+        logger.debug("← vision %d chars: %s", len(result), result[:120])
+        return result
     except Exception as e:
         logger.error("vision error: %s", e)
         return ""
@@ -121,10 +129,17 @@ async def msg_to_ollama(msg: Message, fallback_text: str = "Что на карт
     return _promt(f"{_sender_name(msg)}: {body if body else fallback_text}", images)
 
 
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
+
+
 async def _chat(messages: list[dict]) -> str:
     logger.debug("→ LLM %s msgs=%d", LLM_CONFIG["url"], len(messages))
-    resp = await _client.chat.completions.create(model=LLM_CONFIG["model"], messages=messages)
-    result = resp.choices[0].message.content.strip()
+    resp = await _client.chat.completions.create(
+        model=LLM_CONFIG["model"],
+        messages=messages,
+        extra_body={"think": False},
+    )
+    result = _THINK_RE.sub("", resp.choices[0].message.content).strip()
     logger.debug("← LLM %d chars", len(result))
     return result
 
