@@ -16,7 +16,7 @@ __pycache__/
 downloads/
 
 # Chat data
-chats.json
+db.json
 
 # IDE
 .idea/

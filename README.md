@@ -67,7 +67,7 @@ python app.py
 | `LLM_VISION_API_KEY` | `local` | Vision model API key |
 | `PERSONAS_DIR` | `personas` | Path to personas directory |
 | `PERSONA_KEY` | `default` | Default persona key (filename without `.yaml`) |
-| `CHATS_FILE` | `chats.json` | Path to chat state file |
+| `CHATS_FILE` | `db.json` | Path to database file |
 
 ### Commands
 
@@ -80,7 +80,7 @@ deny - disable the bot in this chat (admin)
 persona - show current persona
 personas - list all available personas
 persona_set - set persona for this chat (admin)
-chats - download chats.json (admin, private only)
+chats - download db.json (admin, private only)
 ```
 
 ### Personas
@@ -179,7 +179,7 @@ python app.py
 | `LLM_VISION_API_KEY` | `local` | API-ключ vision-модели |
 | `PERSONAS_DIR` | `personas` | Путь к директории с персонами |
 | `PERSONA_KEY` | `default` | Персона по умолчанию (имя файла без `.yaml`) |
-| `CHATS_FILE` | `chats.json` | Путь к файлу состояния чатов |
+| `CHATS_FILE` | `db.json` | Путь к файлу базы данных |
 
 ### Команды
 
@@ -192,7 +192,7 @@ deny - запретить боту отвечать в этом чате (адм
 persona - показать текущую персону
 personas - список всех доступных персон
 persona_set - сменить персону для этого чата (админ)
-chats - скачать chats.json (админ, только в личке)
+chats - скачать db.json (админ, только в личке)
 ```
 
 ### Персоны

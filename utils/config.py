@@ -33,7 +33,7 @@ PYROGRAM_CONFIG = {
 
 PERSONAS_DIR = os.getenv("PERSONAS_DIR", "personas")
 PERSONA_KEY = os.getenv("PERSONA_KEY", "default")
-CHATS_FILE = os.getenv("CHATS_FILE", "chats.json")
+CHATS_FILE = os.getenv("CHATS_FILE", "db.json")
 ALLOWED_USERS = [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip()]
 
 RANDOM_REPLY_CHANCE = 0.05

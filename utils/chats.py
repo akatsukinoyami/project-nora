@@ -3,7 +3,7 @@ import os
 
 from pyrogram.types import Message
 
-_path: str = "chats.json"
+_path: str = "db.json"
 _data: dict = {}
 
 
@@ -13,6 +13,8 @@ def init(path: str) -> None:
     if os.path.exists(_path):
         with open(_path, "r", encoding="utf-8") as f:
             _data = json.load(f)
+    _data.setdefault("chats", {})
+    _data.setdefault("users", {})
 
 
 def _save() -> None:
@@ -21,11 +23,11 @@ def _save() -> None:
 
 
 def _chat(chat_id: int) -> dict:
-    return _data.setdefault(str(chat_id), {})
+    return _data["chats"].setdefault(str(chat_id), {})
 
 
 def is_allowed(chat_id: int) -> bool:
-    return _data.get(str(chat_id), {}).get("is_active", False)
+    return _data["chats"].get(str(chat_id), {}).get("is_active", False)
 
 
 def allow(chat_id: int) -> None:
@@ -39,7 +41,7 @@ def deny(chat_id: int) -> None:
 
 
 def get_persona(chat_id: int) -> str | None:
-    return _data.get(str(chat_id), {}).get("persona")
+    return _data["chats"].get(str(chat_id), {}).get("persona")
 
 
 def set_persona(chat_id: int, persona: str) -> None:
@@ -61,7 +63,9 @@ def record_call(message: Message) -> None:
     uid = str(u.id)
     chat.setdefault("calls", {})[uid] = chat.get("calls", {}).get(uid, 0) + 1
 
-    name = u.username or f"{u.first_name or ''} {u.last_name or ''}".strip() or uid
-    chat.setdefault("users", {})[uid] = name
+    user = _data["users"].setdefault(uid, {})
+    if u.username:
+        user["username"] = u.username
+    user["name"] = f"{u.first_name or ''} {u.last_name or ''}".strip() or uid
 
     _save()
