@@ -71,8 +71,8 @@ async def on_persona(client: Client, message: Message):
 
 @Client.on_message(filters.command("personas"))
 async def on_personas(_: Client, message: Message):
-    lines = [f"• {state.get_name(k)} — {desc}" for k, desc in state.list_personas()]
-    await message.reply("\n".join(lines))
+    lines = [f"• {state.get_name(k)}\n    {desc}" for k, desc in state.list_personas()]
+    await message.reply("\n\n".join(lines))
 
 
 @Client.on_message(filters.command("chats") & filters.private)
