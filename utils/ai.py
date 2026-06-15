@@ -89,7 +89,7 @@ async def _extract_media(msg: Message) -> tuple[list[str], str]:
 
 
 async def _describe_images(images: list[str], context: str = "") -> str:
-    prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Кратко." if context else "Опиши что на изображениях. Извлеки текст если есть. Кратко."
+    prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков." if context else "Опиши что на изображениях. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков."
     parts = [{"type": "text", "text": prompt}]
     parts += [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images]
     logger.debug("→ vision %s context=%d chars", LLM_VISION_CONFIG["model"], len(context))
@@ -97,7 +97,7 @@ async def _describe_images(images: list[str], context: str = "") -> str:
         resp = await _vision_client.chat.completions.create(
             model=LLM_VISION_CONFIG["model"],
             messages=[{"role": "user", "content": parts}],
-            max_tokens=256,
+            max_tokens=512,
         )
         result = (resp.choices[0].message.content or "").strip()
         logger.debug("← vision %d chars: %s", len(result), result[:120])
