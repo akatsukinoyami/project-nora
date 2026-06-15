@@ -82,6 +82,13 @@ async def on_chats(client: Client, message: Message):
     await client.send_document(message.chat.id, CHATS_FILE, reply_to_message_id=message.id)
 
 
+@Client.on_message(filters.command("debug_vision") & filters.private)
+@admin
+async def on_debug_vision(_: Client, message: Message):
+    enabled = state.toggle_debug_vision()
+    await message.reply(f"Vision debug: {'on' if enabled else 'off'}")
+
+
 @Client.on_message(filters.command("persona_set"))
 @admin
 async def on_persona_set(client: Client, message: Message):

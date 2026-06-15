@@ -6,7 +6,8 @@ import yaml
 _bot_name: str | None = None
 _personas: dict[str, dict] = {}
 _base: str = ""
-_name_index: dict[str, str] = {}  # lowercased name variant → persona key
+_name_index: dict[str, str] = {}
+_debug_vision: bool = False  # lowercased name variant → persona key
 
 
 def set_bot_name(name: str) -> None:
@@ -16,6 +17,16 @@ def set_bot_name(name: str) -> None:
 
 def get_bot_name() -> str | None:
     return _bot_name
+
+
+def toggle_debug_vision() -> bool:
+    global _debug_vision
+    _debug_vision = not _debug_vision
+    return _debug_vision
+
+
+def is_debug_vision() -> bool:
+    return _debug_vision
 
 
 def load_personas(directory: str) -> None:

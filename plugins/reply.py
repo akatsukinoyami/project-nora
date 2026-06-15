@@ -11,6 +11,13 @@ from utils.ai import ask
 from utils.config import ALLOWED_USERS, PERSONA_KEY, RANDOM_REPLY_CHANCE
 
 
+def _is_admin_private(message: Message) -> bool:
+    return (
+        message.chat.type.value.startswith("private")
+        and bool(message.from_user and message.from_user.id in ALLOWED_USERS)
+    )
+
+
 async def _keep_typing(client: Client, chat_id: int, stop: asyncio.Event):
     while not stop.is_set():
         try:
@@ -62,7 +69,8 @@ async def on_reply(client: Client, message: Message):
     system = state.get_system(persona_key)
 
     try:
-        text = await ask(system, message, reply_to=message.reply_to_message)
+        debug = state.is_debug_vision() and _is_admin_private(message)
+        text = await ask(system, message, reply_to=message.reply_to_message, debug=debug)
     finally:
         stop.set()
 
