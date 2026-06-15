@@ -61,7 +61,7 @@ async def on_deny(client: Client, message: Message):
 @Client.on_message(filters.command("persona"))
 async def on_persona(client: Client, message: Message):
     key = _persona_key(message.chat.id)
-    name = state.humanize(key)
+    name = state.get_name(key)
     description = state.get_description(key)
     await _reply_in_character(
         client, message,
@@ -71,7 +71,7 @@ async def on_persona(client: Client, message: Message):
 
 @Client.on_message(filters.command("personas"))
 async def on_personas(_: Client, message: Message):
-    lines = [f"• {state.humanize(k)} — {desc}" for k, desc in state.list_personas()]
+    lines = [f"• {state.get_name(k)} — {desc}" for k, desc in state.list_personas()]
     await message.reply("\n".join(lines))
 
 
@@ -90,14 +90,14 @@ async def on_persona_set(client: Client, message: Message):
         await message.reply("Использование: /persona_set <ключ>")
         return
 
-    key = args[1].strip()
-    available = [k for k, _ in state.list_personas()]
-    if key not in available:
-        await message.reply(f"Персона `{key}` не найдена.\nДоступные: {', '.join(available)}")
+    key = state.resolve_key(args[1].strip())
+    if key is None:
+        available = [state.get_name(k) for k, _ in state.list_personas()]
+        await message.reply(f"Персона не найдена.\nДоступные: {', '.join(available)}")
         return
 
     chats.set_persona(message.chat.id, key)
     new_system = state.get_system(key)
     await client.send_chat_action(message.chat.id, ChatAction.TYPING)
-    text = await ask_text(f"Тебя только что переключили на персону {state.humanize(key)}. Представься коротко.", new_system)
+    text = await ask_text(f"Тебя только что переключили на персону {state.get_name(key)}. Представься коротко.", new_system)
     await message.reply(text)

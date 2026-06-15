@@ -4,7 +4,7 @@ import logging
 from pyrogram import Client, idle
 
 from utils import chats, state
-from utils.config import PYROGRAM_CONFIG, CHATS_FILE, PERSONAS_FILE
+from utils.config import PYROGRAM_CONFIG, CHATS_FILE, PERSONAS_DIR
 
 logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
 logging.getLogger("utils.ai").setLevel(logging.INFO)
@@ -17,7 +17,7 @@ app = Client(
 
 async def _main():
     chats.init(CHATS_FILE)
-    state.load_personas(PERSONAS_FILE)
+    state.load_personas(PERSONAS_DIR)
 
     await app.start()
     me = await app.get_me()

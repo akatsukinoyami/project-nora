@@ -31,7 +31,7 @@ PYROGRAM_CONFIG = {
     "bot_token": os.getenv("BOT_TOKEN"),
 }
 
-PERSONAS_FILE = os.getenv("PERSONAS_FILE", "personas.yaml")
+PERSONAS_DIR = os.getenv("PERSONAS_DIR", "personas")
 PERSONA_KEY = os.getenv("PERSONA_KEY", "default")
 CHATS_FILE = os.getenv("CHATS_FILE", "chats.json")
 ALLOWED_USERS = [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip()]
