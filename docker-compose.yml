@@ -6,7 +6,7 @@ services:
     env_file: .env
     volumes:
       - ./personas:/app/personas:ro
-      - ./db.json:/app/db.json
+      - ./data:/app/data
 # Need for my local deployment
 #
 #    networks:

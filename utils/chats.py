@@ -10,6 +10,7 @@ _data: dict = {}
 def init(path: str) -> None:
     global _path, _data
     _path = path
+    os.makedirs(os.path.dirname(_path) or ".", exist_ok=True)
     if os.path.exists(_path):
         with open(_path, "r", encoding="utf-8") as f:
             _data = json.load(f)
