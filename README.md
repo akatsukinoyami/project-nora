@@ -1,52 +1,73 @@
 # Small AI Bot
 
-A small, fast Telegram bot powered by a local LLM via [Ollama](https://ollama.com). Responds with an anime character persona, handles text, photos, stickers, GIFs, and videos.
+[English](#english) | [Русский](#русский)
 
-[Читать на русском](README.ru.md)
+---
 
-## Features
+## English
+
+A small Telegram bot powered by a local LLM via [Ollama](https://ollama.com) or any OpenAI-compatible API (DeepSeek, mlx_lm, etc.). Responds with an anime character persona, handles text, photos, stickers, GIFs, and videos.
+
+### Features
 
 - Responds when mentioned, replied to, or always in private chats
 - Reacts when addressed by name (e.g. "Aqua, what do you think?")
 - Occasionally joins group conversations on its own (configurable chance)
 - Handles photos, stickers, GIFs, and videos (frames extracted via OpenCV)
-- Anime character personas defined in YAML — switch via env var
-- Prompt injection detection — stays in character when someone tries to jailbreak it
+- Anime character personas defined in individual YAML files — switch per chat via bot command
+- Three vision modes:
+  - `same` - images sent to main LLM
+  - `separate` - local vision model describes, text sent to main LLM
+  - `false` - ignore images
+- Two-layer prompt injection protection
+  - regex pre-filter catches common patterns
+  - system prompt instructs the persona to stay in character regardless
+- Per-chat persona switching and allow/deny control
 - Typing indicator while generating a response
 
-## Requirements
+### Requirements
 
 - Python 3.13 (3.14 breaks Pyrogram)
-- [Ollama](https://ollama.com) running locally or on a remote host
-- A vision-capable model, e.g. `gemma3:4b`
+- [Ollama](https://ollama.com) running locally or any OpenAI-compatible backend
+- A model that fits your hardware, e.g. `gemma3:4b`
 
-## Setup
+### Setup
 
 ```bash
 python3.13 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-Copy `.env.example` to `.env` and fill in your values:
-
-```bash
 cp .env.example .env
 ```
 
-## Configuration
+### Running Ollama
+
+```bash
+ollama serve
+ollama pull gemma3:4b
+python app.py
+```
+
+### Configuration
 
 | Variable | Default | Description |
 | --- | --- | --- |
 | `BOT_TOKEN` | — | Telegram bot token from [@BotFather](https://t.me/BotFather) |
 | `API_ID` | — | Telegram API ID from [my.telegram.org](https://my.telegram.org) |
 | `API_HASH` | — | Telegram API hash |
-| `LLM_URL` | `http://localhost:11434` | LLM backend URL (Ollama, mlx_lm, etc.) |
+| `ALLOWED_USERS` | — | Comma-separated Telegram user IDs with admin access |
+| `LLM_URL` | `http://localhost:11434` | LLM backend URL |
 | `LLM_MODEL` | `gemma3:4b` | Model name |
-| `PERSONAS_FILE` | `personas.yaml` | Path to personas file |
-| `PERSONA_KEY` | `default` | Active persona key |
+| `LLM_API_KEY` | `local` | API key (use any string for local backends) |
+| `LLM_VISION` | `same` | Vision mode: `same`, `separate`, or `false` |
+| `LLM_VISION_URL` | `LLM_URL` | Vision model backend URL (for `separate` mode) |
+| `LLM_VISION_MODEL` | `LLM_MODEL` | Vision model name |
+| `LLM_VISION_API_KEY` | `local` | Vision model API key |
+| `PERSONAS_DIR` | `personas` | Path to personas directory |
+| `PERSONA_KEY` | `default` | Default persona key (filename without `.yaml`) |
+| `CHATS_FILE` | `chats.json` | Path to chat state file |
 
-## Commands
+### Commands
 
 For BotFather (`/setcommands`):
 
@@ -57,38 +78,146 @@ deny - disable the bot in this chat (admin)
 persona - show current persona
 personas - list all available personas
 persona_set - set persona for this chat (admin)
-chats - download chats.json (admin)
+chats - download chats.json (admin, private only)
 ```
 
-## Running
+### Personas
 
-**1. Start Ollama and pull a model:**
+Personas live in the `personas/` directory as individual YAML files:
+
+```yaml
+name: Aqua                  # string or {ru: "Аква", en: "Aqua"}
+description: Short description shown in /personas
+prompt: |
+  You are Aqua from KonoSuba...
+```
+
+`_base.yaml` is special — its `prompt` is appended to every persona.
+
+To add a persona, create a new `.yaml` file in `personas/`. Switch with `/persona_set <name>` — any name variant works (`Аква`, `Aqua`, `aqua`).
+
+### Project Structure
+
+```text
+app.py              — entry point
+personas/           — persona YAML files
+utils/
+  config.py         — env vars
+  ai.py             — LLM client, vision, injection detection
+  state.py          — persona loading and lookup
+  chats.py          — per-chat state (allow/deny, persona, stats)
+  animations.py     — GIF/video frame extraction via OpenCV
+plugins/
+  reply.py          — main message handler
+  commands.py       — bot commands
+```
+
+---
+
+## Русский
+
+Маленький Telegram-бот на базе локальной LLM через [Ollama](https://ollama.com) или любого OpenAI-совместимого API (DeepSeek, mlx_lm и др.). Отвечает с характером аниме-персонажа, обрабатывает текст, фото, стикеры, GIF и видео.
+
+### Возможности
+
+- Отвечает при упоминании, ответе на его сообщение или всегда в личных чатах
+- Реагирует на обращение по имени (например: "Аква, что думаешь?")
+- Иногда сам вмешивается в разговор в группе (настраиваемый шанс)
+- Обрабатывает фото, стикеры, GIF и видео (кадры извлекаются через OpenCV)
+- Персонажи описаны в отдельных YAML-файлах — переключение для каждого чата через команду
+- Три режима работы с изображениями:
+  - `same` - картинки идут в основную LLM
+  - `separate` - локальная vision-модель описывает, текст идёт в основную LLM
+  - `false` - игнорировать медиа
+- Двухуровневая защита от prompt injection:
+  - regex-фильтр отлавливает типичные паттерны
+  - системный промт инструктирует персону оставаться в роли в любом случае
+- Настройка персоны и доступа отдельно для каждого чата
+- Показывает индикатор набора текста во время генерации ответа
+
+### Требования
+
+- Python 3.13 (3.14 ломает Pyrogram)
+- [Ollama](https://ollama.com) локально или любой OpenAI-совместимый бекенд
+- Модель под ваше железо, например `gemma3:4b`
+
+### Установка
+
+```bash
+python3.13 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+```
+
+### Запуск через Ollama
 
 ```bash
 ollama serve
 ollama pull gemma3:4b
-```
-
-**2. Run the bot:**
-
-```bash
 python app.py
 ```
 
-## Personas
+### Конфигурация
 
-Personas are defined in `personas.yaml`. Each persona has a `system` key with the character description. A `base_instructions` block at the top is appended to every persona.
+| Переменная | По умолчанию | Описание |
+| --- | --- | --- |
+| `BOT_TOKEN` | — | Токен бота от [@BotFather](https://t.me/BotFather) |
+| `API_ID` | — | Telegram API ID с [my.telegram.org](https://my.telegram.org) |
+| `API_HASH` | — | Telegram API hash |
+| `ALLOWED_USERS` | — | ID пользователей Telegram с правами администратора через запятую |
+| `LLM_URL` | `http://localhost:11434` | Адрес LLM бекенда |
+| `LLM_MODEL` | `gemma3:4b` | Название модели |
+| `LLM_API_KEY` | `local` | API-ключ (любая строка для локальных бекендов) |
+| `LLM_VISION` | `same` | Режим работы с изображениями: `same`, `separate` или `false` |
+| `LLM_VISION_URL` | `LLM_URL` | Адрес vision-модели (для режима `separate`) |
+| `LLM_VISION_MODEL` | `LLM_MODEL` | Название vision-модели |
+| `LLM_VISION_API_KEY` | `local` | API-ключ vision-модели |
+| `PERSONAS_DIR` | `personas` | Путь к директории с персонами |
+| `PERSONA_KEY` | `default` | Персона по умолчанию (имя файла без `.yaml`) |
+| `CHATS_FILE` | `chats.json` | Путь к файлу состояния чатов |
 
-To add a persona, add a new key to the YAML and set `PERSONA_KEY` in `.env`.
+### Команды
 
-## Project Structure
+Для BotFather (`/setcommands`):
 
 ```text
-app.py              — bot entry point, handlers, filters
-personas.yaml       — character personas
+ping - проверить, живой ли бот
+allow - разрешить боту отвечать в этом чате (админ)
+deny - запретить боту отвечать в этом чате (админ)
+persona - показать текущую персону
+personas - список всех доступных персон
+persona_set - сменить персону для этого чата (админ)
+chats - скачать chats.json (админ, только в личке)
+```
+
+### Персоны
+
+Персоны хранятся в директории `personas/` как отдельные YAML-файлы:
+
+```yaml
+name: Аква                  # строка или {ru: "Аква", en: "Aqua"}
+description: Короткое описание для /personas
+prompt: |
+  Ты — Аква из KonoSuba...
+```
+
+`_base.yaml` — особый файл: его `prompt` добавляется к каждой персоне.
+
+Чтобы добавить персону — создайте новый `.yaml` файл в `personas/`. Переключение через `/persona_set <имя>` — работает любой вариант имени (`Аква`, `Aqua`, `aqua`).
+
+### Структура проекта
+
+```text
+app.py              — точка входа
+personas/           — YAML-файлы персон
 utils/
-  config.py         — env vars (loads .env)
-  ai.py             — Ollama client, injection detection, message building
-  images.py         — image resize + base64 encode
-  animations.py     — GIF/video frame extraction via OpenCV
+  config.py         — переменные окружения
+  ai.py             — LLM-клиент, vision, защита от инъекций
+  state.py          — загрузка и поиск персон
+  chats.py          — состояние чатов (доступ, персона, статистика)
+  animations.py     — извлечение кадров из GIF/видео через OpenCV
+plugins/
+  reply.py          — основной обработчик сообщений
+  commands.py       — команды бота
 ```
