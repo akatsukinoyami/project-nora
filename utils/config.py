@@ -41,8 +41,24 @@ RANDOM_REPLY_CHANCE = 0.05
 FALLBACK = "Мяу... что-то пошло не так, ня. Попробуй ещё раз."
 
 INJECTION_RE = re.compile(
-    r"(забудь|ignore|forget|disregard).{0,30}(инструкц|промт|system|prompt|previous|прошл)"
-    r"|ты теперь|act as|pretend (you are|to be)|новая роль|выйди из роли",
+    # forget/ignore + what
+    r"(забудь|игнорируй|forget|ignore|disregard|сбрось).{0,50}"
+    r"(инструкц|правил|промт|роль|system|prompt|previous|прошл|выше|above|всё|все)"
+    # explicit role commands
+    r"|выйди\s+из\s+роли|войди\s+в\s+роль|сыграй\s+роль|новая\s+роль|выйди\s+из\s+образа"
+    r"|act\s+as\b|roleplay\s+as\b|pretend\s+(you\s+are|to\s+be)"
+    r"|притворись\s+(что\s+)?(ты\b|будто)"
+    # identity override
+    r"|ты\s+теперь\s+(?!понима|зна|вид|слыш|дума|мой|наш|свобод)"
+    r"|you\s+are\s+now\b|ты\s+больше\s+не\s+(бот|персонаж|ИИ|ai\b)"
+    # new instructions
+    r"|ignore\s+(all\s+)?(previous\s+)?instructions"
+    r"|твои\s+(новые\s+)?(инструкции|правила)\s*(:|это|are)"
+    r"|your\s+(new\s+)?instructions\s*(:|are)"
+    # jailbreak keywords
+    r"|\bjailbreak\b|dan\s*mode|\bdeveloper\s*mode\b|режим\s+разработчика"
+    r"|без\s+(каких[- ]либо\s+)?ограничений|without\s+(any\s+)?restrictions"
+    r"|обойди\s+(правила|ограничения|инструкции|систему|фильтр)",
     re.IGNORECASE,
 )
 
