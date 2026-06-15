@@ -1,4 +1,4 @@
-# Small AI Bot
+# Project Nora
 
 [English](#english) | [Русский](#русский)
 
