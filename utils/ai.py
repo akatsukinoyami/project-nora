@@ -92,15 +92,12 @@ async def _describe_images(images: list[str], context: str = "") -> str:
     prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков." if context else "Опиши что на изображениях. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков."
     parts = [{"type": "text", "text": prompt}]
     parts += [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images]
-    logger.debug("→ vision %s context=%d chars", LLM_VISION_CONFIG["model"], len(context))
     try:
         resp = await _vision_client.chat.completions.create(
             model=LLM_VISION_CONFIG["model"],
             messages=[{"role": "user", "content": parts}],
         )
-        result = (resp.choices[0].message.content or "").strip()
-        logger.debug("← vision %d chars: %s", len(result), result[:120])
-        return result
+        return (resp.choices[0].message.content or "").strip()
     except Exception as e:
         logger.error("vision error: %s", e)
         return ""
@@ -128,15 +125,12 @@ _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
 async def _chat(messages: list[dict]) -> str:
-    logger.debug("→ LLM %s msgs=%d", LLM_CONFIG["url"], len(messages))
     resp = await _client.chat.completions.create(
         model=LLM_CONFIG["model"],
         messages=messages,
         extra_body={"think": False},
     )
-    result = _THINK_RE.sub("", resp.choices[0].message.content).strip()
-    logger.debug("← LLM %d chars", len(result))
-    return result
+    return _THINK_RE.sub("", resp.choices[0].message.content).strip()
 
 
 async def ask_text(situation: str, system: str) -> str:
