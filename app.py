@@ -7,10 +7,12 @@ from pyrogram import Client, idle
 from utils import chats, state
 from utils.config import PYROGRAM_CONFIG, CHATS_FILE, PERSONAS_DIR
 
-logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
+logging.basicConfig(level=logging.DEBUG, format="%(name)s %(levelname)s %(message)s")
 logging.getLogger("utils.ai").setLevel(
     logging.DEBUG if os.getenv("LOG_DEBUG") else logging.INFO
 )
+logging.getLogger("pyrogram").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.WARNING)
 
 app = Client(
     "small_ai_bot",
