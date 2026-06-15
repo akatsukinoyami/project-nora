@@ -97,7 +97,6 @@ async def _describe_images(images: list[str], context: str = "") -> str:
         resp = await _vision_client.chat.completions.create(
             model=LLM_VISION_CONFIG["model"],
             messages=[{"role": "user", "content": parts}],
-            max_tokens=512,
         )
         result = (resp.choices[0].message.content or "").strip()
         logger.debug("← vision %d chars: %s", len(result), result[:120])
