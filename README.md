@@ -25,6 +25,8 @@ A small Telegram bot powered by a local LLM via [Ollama](https://ollama.com) or 
 - Per-chat persona switching and allow/deny control
 - Typing indicator while generating a response
 
+> **Note:** Response quality depends heavily on the model you use. Small local models will stay in character but may feel generic; larger or instruction-tuned models produce much more expressive results.
+
 ### Requirements
 
 - Python 3.13 (3.14 breaks Pyrogram)
@@ -134,6 +136,8 @@ plugins/
   - системный промт инструктирует персону оставаться в роли в любом случае
 - Настройка персоны и доступа отдельно для каждого чата
 - Показывает индикатор набора текста во время генерации ответа
+
+> **Примечание:** Качество ответов очень сильно зависит от используемой модели. Маленькие локальные модели будут держать персону, но могут быть безликими; большие или instruction-tuned модели дают заметно более живые результаты.
 
 ### Требования
 
