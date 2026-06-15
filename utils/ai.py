@@ -98,9 +98,8 @@ async def _describe_images(images: list[str], context: str = "") -> str:
             model=LLM_VISION_CONFIG["model"],
             messages=[{"role": "user", "content": parts}],
             max_tokens=256,
-            extra_body={"reasoning_effort": "minimal"},
         )
-        result = resp.choices[0].message.content.strip()
+        result = (resp.choices[0].message.content or "").strip()
         logger.debug("← vision %d chars: %s", len(result), result[:120])
         return result
     except Exception as e:
