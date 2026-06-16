@@ -51,6 +51,8 @@ class Chats:
         chat["title"] = c.title or f"{c.first_name or ''} {c.last_name or ''}".strip() or str(c.id)
         if c.username:
             chat["username"] = c.username
+        if c.type.value.startswith("private"):
+            chat.setdefault("is_active", True)
 
         uid = str(u.id)
         chat.setdefault("calls", {})[uid] = chat.get("calls", {}).get(uid, 0) + 1
