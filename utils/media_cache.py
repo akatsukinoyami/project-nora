@@ -24,6 +24,10 @@ def _save() -> None:
     os.replace(tmp, _path)
 
 
+def get(key: str) -> str | None:
+    return _data.get(key)
+
+
 async def get_or_compute(
     key: str,
     compute: Callable[[], Awaitable[str]],

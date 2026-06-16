@@ -117,13 +117,23 @@ async def msg_to_ollama(
     fallback_text: str = "Что на картинке?",
     _vision_log: list[str] | None = None,
 ) -> dict:
+    fuid = _file_unique_id(msg)
+
+    # Fast path: cache hit — skip download entirely
+    if fuid and LLM_VISION_MODE == "separate":
+        cached = media_cache.get(fuid)
+        if cached is not None:
+            if _vision_log is not None:
+                _vision_log.append(cached)
+            body = (msg.text or msg.caption or "") + f" [на медиа: {cached}]"
+            return _promt(f"{_sender_name(msg)}: {body}", [])
+
     images, extra = await _extract_media(msg)
 
     if images:
         if LLM_VISION_MODE == "false":
             images = []
         elif LLM_VISION_MODE == "separate":
-            fuid = _file_unique_id(msg)
             if fuid:
                 description = await media_cache.get_or_compute(fuid, lambda: _describe_images(images))
             else:
