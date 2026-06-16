@@ -14,6 +14,8 @@ A small Telegram bot powered by a local LLM via [Ollama](https://ollama.com) or 
 - Reacts when addressed by name (e.g. "Aqua, what do you think?")
 - Occasionally joins group conversations on its own (configurable chance)
 - Handles photos, stickers, GIFs, and videos (frames extracted via OpenCV)
+- Media groups (albums) processed as a single message — each file described separately, text model infers context across them
+- Vision descriptions cached by `file_unique_id` in `data/media_cache.json` — repeated files skip download and vision entirely
 - Anime character personas defined in individual YAML files — switch per chat via bot command
 - Three vision modes:
   - `same` - images sent to main LLM
@@ -81,6 +83,7 @@ persona - show current persona
 personas - list all available personas
 persona_set - set persona for this chat (admin)
 chats - download db.json (admin, private only)
+id - show chat id, user id, and file_unique_id(s) with cached vision description
 ```
 
 ### Personas
@@ -103,14 +106,19 @@ To add a persona, create a new `.yaml` file in `personas/`. Switch with `/person
 ```text
 app.py              — entry point
 personas/           — persona YAML files
+data/
+  {name}.json       — per-bot chat state (allow/deny, persona, stats)
+  {name}.session    — Pyrogram session file
+  media_cache.json  — shared vision description cache (file_unique_id → description)
 utils/
   config.py         — env vars
   ai.py             — LLM client, vision, injection detection
   state.py          — persona loading and lookup
   chats.py          — per-chat state (allow/deny, persona, stats)
+  media_cache.py    — shared vision cache with race-condition-safe get_or_compute
   animations.py     — GIF/video frame extraction via OpenCV
 plugins/
-  reply.py          — main message handler
+  reply.py          — message handlers (single messages and media groups)
   commands.py       — bot commands
 ```
 
@@ -126,6 +134,8 @@ plugins/
 - Реагирует на обращение по имени (например: "Аква, что думаешь?")
 - Иногда сам вмешивается в разговор в группе (настраиваемый шанс)
 - Обрабатывает фото, стикеры, GIF и видео (кадры извлекаются через OpenCV)
+- Медиагруппы (альбомы) обрабатываются как одно сообщение — каждый файл описывается отдельно, текстовая модель сама находит связь между ними
+- Описания от vision-модели кешируются по `file_unique_id` в `data/media_cache.json` — повторные файлы пропускают скачивание и vision полностью
 - Персонажи описаны в отдельных YAML-файлах — переключение для каждого чата через команду
 - Три режима работы с изображениями:
   - `same` - картинки идут в основную LLM
@@ -193,6 +203,7 @@ persona - показать текущую персону
 personas - список всех доступных персон
 persona_set - сменить персону для этого чата (админ)
 chats - скачать db.json (админ, только в личке)
+id - показать id чата, пользователя и file_unique_id(s) с кешированным описанием
 ```
 
 ### Персоны
@@ -215,13 +226,18 @@ prompt: |
 ```text
 app.py              — точка входа
 personas/           — YAML-файлы персон
+data/
+  {name}.json       — состояние чатов каждого бота (доступ, персона, статистика)
+  {name}.session    — сессия Pyrogram
+  media_cache.json  — общий кеш vision-описаний (file_unique_id → описание)
 utils/
   config.py         — переменные окружения
   ai.py             — LLM-клиент, vision, защита от инъекций
   state.py          — загрузка и поиск персон
   chats.py          — состояние чатов (доступ, персона, статистика)
+  media_cache.py    — общий кеш vision с защитой от race condition
   animations.py     — извлечение кадров из GIF/видео через OpenCV
 plugins/
-  reply.py          — основной обработчик сообщений
+  reply.py          — обработчики сообщений (одиночные и медиагруппы)
   commands.py       — команды бота
 ```
