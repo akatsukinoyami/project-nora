@@ -5,7 +5,7 @@ from pyrogram import Client, idle
 
 from utils import state
 from utils.chats import Chats
-from utils.config import API_ID, API_HASH, BOTS, PERSONAS_DIR
+from utils.config import API_ID, API_HASH, BOTS, PERSONAS_DIR, PERSONA_KEY
 
 
 logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
