@@ -74,4 +74,10 @@ async def on_reply(client: Client, message: Message):
     finally:
         stop.set()
 
-    await message.reply(text)
+    try:
+        await message.reply(text)
+    except Exception as e:
+        if "MESSAGE_EMPTY" in str(e):
+            await message.reply("*нарочито молчит*")
+        else:
+            raise
