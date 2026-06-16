@@ -11,7 +11,7 @@ def _file_unique_ids(msg: Message) -> list[str]:
             return [fuid]
     return []
 
-from utils import state
+from utils import state, media_cache
 from utils.ai import ask_text
 from utils.config import ALLOWED_USERS
 
@@ -141,6 +141,13 @@ async def on_id(client: Client, message: Message):
         fuids.extend(_file_unique_ids(source))
 
     if fuids:
-        lines.append("File unique id(s):\n" + "\n".join(f"  - `{f}`" for f in fuids))
+        fuid_lines = []
+        for f in fuids:
+            desc = media_cache.get(f)
+            entry = f"  - `{f}`"
+            if desc:
+                entry += f": {desc}"
+            fuid_lines.append(entry)
+        lines.append("File unique id(s):\n" + "\n".join(fuid_lines))
 
     await message.reply("\n".join(lines))
