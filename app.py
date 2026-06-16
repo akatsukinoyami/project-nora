@@ -1,19 +1,37 @@
 import asyncio
 import logging
-import os
 
 from pyrogram import Client, idle
 
-from utils import chats, state
-from utils.config import PYROGRAM_CONFIG, CHATS_FILE, PERSONAS_DIR
+from utils import state
+from utils.chats import Chats
+from utils.config import API_ID, API_HASH, BOTS, PERSONAS_DIR
+
 
 logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
 
-app = Client(
-    "small_ai_bot",
-    **PYROGRAM_CONFIG,
-    plugins=dict(root="plugins"),
-)
+
+def _make_client(name: str, token: str) -> Client:
+    client = Client(
+        name,
+        api_id=API_ID,
+        api_hash=API_HASH,
+        bot_token=token,
+        workdir="data",
+        plugins=dict(root="plugins"),
+    )
+    client.chats = Chats(f"data/{name}.json")
+    client.bot_name = None
+    client.debug_vision = False
+    return client
+
+
+async def _start(client: Client) -> None:
+    await client.start()
+    me = await client.get_me()
+    client.bot_name = me.first_name
+    logging.warning("Bot started: name=%s session=%s", me.first_name, client.name)
+
 
 async def _main():
     from utils.config import LLM_CONFIG, LLM_VISION_MODE, LLM_VISION_CONFIG
@@ -24,17 +42,15 @@ async def _main():
     if LLM_VISION_MODE == "separate":
         logging.warning("Vision: url=%s model=%s", LLM_VISION_CONFIG["url"], LLM_VISION_CONFIG["model"])
 
-    chats.init(CHATS_FILE)
     state.load_personas(PERSONAS_DIR)
     logging.warning("Personas loaded: %s", [k for k, _ in state.list_personas()])
 
-    await app.start()
-    me = await app.get_me()
-    state.set_bot_name(me.first_name)
-    logging.warning("Bot started as %s", me.first_name)
+    clients = [_make_client(name, token) for name, token in BOTS.items()]
+    await asyncio.gather(*[_start(c) for c in clients])
 
     await idle()
-    await app.stop()
+
+    await asyncio.gather(*[c.stop() for c in clients])
 
 
 if __name__ == "__main__":

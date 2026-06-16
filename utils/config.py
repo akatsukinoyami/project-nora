@@ -25,11 +25,17 @@ LLM_VISION_CONFIG = {
 }
 
 
-PYROGRAM_CONFIG = {
-    "api_id": int(os.getenv("API_ID")),
-    "api_hash": os.getenv("API_HASH"),
-    "bot_token": os.getenv("BOT_TOKEN"),
-}
+API_ID = int(os.getenv("API_ID"))
+API_HASH = os.getenv("API_HASH")
+
+def _parse_bots() -> dict[str, str]:
+    import json
+    raw = os.getenv("BOTS")
+    if raw:
+        return json.loads(raw)
+    return {"small_ai_bot": os.getenv("BOT_TOKEN")}
+
+BOTS = _parse_bots()
 
 PERSONAS_DIR = os.getenv("PERSONAS_DIR", "personas")
 PERSONA_KEY = os.getenv("PERSONA_KEY", "default")

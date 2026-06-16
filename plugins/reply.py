@@ -6,7 +6,7 @@ from pyrogram import Client, filters
 from pyrogram.enums import ChatAction
 from pyrogram.types import Message
 
-from utils import chats, state
+from utils import state
 from utils.ai import ask
 from utils.config import ALLOWED_USERS, PERSONA_KEY, RANDOM_REPLY_CHANCE
 
@@ -38,14 +38,14 @@ reply_to_me = filters.create(
     )
 )
 name_called = filters.create(
-    lambda _, __, m: bool(
-        state.get_bot_name()
+    lambda _, client, m: bool(
+        getattr(client, "bot_name", None)
         and m.text
-        and re.search(rf"(?i)\b{re.escape(state.get_bot_name())},", m.text)
+        and re.search(rf"(?i)\b{re.escape(client.bot_name)},", m.text)
     )
 )
 chat_allowed = filters.create(
-    lambda _, __, m: chats.is_allowed(m.chat.id)
+    lambda _, client, m: getattr(client, "chats", None) and client.chats.is_allowed(m.chat.id)
     or (m.from_user and m.from_user.id in ALLOWED_USERS)
 )
 random_nudge = filters.create(
@@ -63,13 +63,13 @@ async def on_reply(client: Client, message: Message):
     stop = asyncio.Event()
     asyncio.create_task(_keep_typing(client, message.chat.id, stop))
 
-    chats.record_call(message)
+    client.chats.record_call(message)
 
-    persona_key = chats.get_persona(message.chat.id) or PERSONA_KEY
+    persona_key = client.chats.get_persona(message.chat.id) or PERSONA_KEY
     system = state.get_system(persona_key)
 
     try:
-        debug = state.is_debug_vision() and _is_admin_private(message)
+        debug = client.debug_vision and _is_admin_private(message)
         text = await ask(system, message, reply_to=message.reply_to_message, debug=debug)
     finally:
         stop.set()
