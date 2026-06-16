@@ -117,6 +117,13 @@ async def on_persona_set(client: Client, message: Message):
     await message.reply(text)
 
 
+@Client.on_message(filters.command("reload_cache") & filters.private)
+@admin
+async def on_reload_cache(_: Client, message: Message):
+    media_cache.init()
+    await message.reply(f"Cache reloaded: {len(media_cache._data)} entries")
+
+
 @Client.on_message(filters.command("id"))
 async def on_id(client: Client, message: Message):
     lines = [f"Chat: `{message.chat.id}`"]
