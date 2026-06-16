@@ -11,16 +11,17 @@ from utils.config import API_ID, API_HASH, BOTS, PERSONAS_DIR
 logging.basicConfig(level=logging.WARNING, format="%(name)s %(levelname)s %(message)s")
 
 
-def _make_client(name: str, token: str) -> Client:
+def _make_client(name: str, cfg: dict) -> Client:
     client = Client(
         name,
         api_id=API_ID,
         api_hash=API_HASH,
-        bot_token=token,
+        bot_token=cfg["token"],
         workdir="data",
         plugins=dict(root="plugins"),
     )
     client.chats = Chats(f"data/{name}.json")
+    client.default_persona = cfg.get("persona", PERSONA_KEY)
     client.bot_name = None
     client.debug_vision = False
     return client
@@ -45,7 +46,7 @@ async def _main():
     state.load_personas(PERSONAS_DIR)
     logging.warning("Personas loaded: %s", [k for k, _ in state.list_personas()])
 
-    clients = [_make_client(name, token) for name, token in BOTS.items()]
+    clients = [_make_client(name, cfg) for name, cfg in BOTS.items()]
     await asyncio.gather(*[_start(c) for c in clients])
 
     await idle()

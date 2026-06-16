@@ -5,7 +5,7 @@ from pyrogram.types import Message
 
 from utils import state
 from utils.ai import ask_text
-from utils.config import ALLOWED_USERS, PERSONA_KEY
+from utils.config import ALLOWED_USERS
 
 
 def _is_admin(message: Message) -> bool:
@@ -13,11 +13,11 @@ def _is_admin(message: Message) -> bool:
 
 
 def _system(client: Client, chat_id: int) -> str:
-    return state.get_system(client.chats.get_persona(chat_id) or PERSONA_KEY)
+    return state.get_system(client.chats.get_persona(chat_id) or client.default_persona)
 
 
 def _persona_key(client: Client, chat_id: int) -> str:
-    return client.chats.get_persona(chat_id) or PERSONA_KEY
+    return client.chats.get_persona(chat_id) or client.default_persona
 
 
 async def _reply_in_character(client: Client, message: Message, situation: str):

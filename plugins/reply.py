@@ -8,7 +8,7 @@ from pyrogram.types import Message
 
 from utils import state
 from utils.ai import ask
-from utils.config import ALLOWED_USERS, PERSONA_KEY, RANDOM_REPLY_CHANCE
+from utils.config import ALLOWED_USERS, RANDOM_REPLY_CHANCE
 
 
 def _is_admin_private(message: Message) -> bool:
@@ -41,7 +41,7 @@ name_called = filters.create(
     lambda _, client, m: bool(
         getattr(client, "bot_name", None)
         and m.text
-        and re.search(rf"(?i)\b{re.escape(client.bot_name)},", m.text)
+        and re.search(rf"(?i)(?<!\w){re.escape(client.bot_name)},", m.text)
     )
 )
 chat_allowed = filters.create(
@@ -65,7 +65,7 @@ async def on_reply(client: Client, message: Message):
 
     client.chats.record_call(message)
 
-    persona_key = client.chats.get_persona(message.chat.id) or PERSONA_KEY
+    persona_key = client.chats.get_persona(message.chat.id) or client.default_persona
     system = state.get_system(persona_key)
 
     try:

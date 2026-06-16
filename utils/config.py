@@ -28,12 +28,18 @@ LLM_VISION_CONFIG = {
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 
-def _parse_bots() -> dict[str, str]:
+def _parse_bots() -> dict[str, dict]:
     import json
     raw = os.getenv("BOTS")
     if raw:
-        return json.loads(raw)
-    return {"small_ai_bot": os.getenv("BOT_TOKEN")}
+        data = json.loads(raw)
+    else:
+        data = {"small_ai_bot": os.getenv("BOT_TOKEN")}
+    # normalize: "name": "token"  →  "name": {"token": "..."}
+    return {
+        name: ({"token": val} if isinstance(val, str) else val)
+        for name, val in data.items()
+    }
 
 BOTS = _parse_bots()
 
