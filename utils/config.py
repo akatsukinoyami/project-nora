@@ -48,7 +48,7 @@ PERSONA_KEY = os.getenv("PERSONA_KEY", "default")
 CHATS_FILE = os.getenv("CHATS_FILE", "data/db.json")
 ALLOWED_USERS = [int(x) for x in os.getenv("ALLOWED_USERS", "").split(",") if x.strip()]
 
-RANDOM_REPLY_CHANCE = 0.05
+RANDOM_REPLY_CHANCE = 0.02
 
 FALLBACK = "Мяу... что-то пошло не так, ня. Попробуй ещё раз."
 

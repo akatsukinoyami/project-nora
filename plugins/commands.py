@@ -3,6 +3,14 @@ from pyrogram import Client, filters
 from pyrogram.enums import ChatAction
 from pyrogram.types import Message
 
+
+def _file_unique_ids(msg: Message) -> list[str]:
+    for attr in ("photo", "sticker", "animation", "video", "document", "audio", "voice", "video_note"):
+        obj = getattr(msg, attr, None)
+        if obj and (fuid := getattr(obj, "file_unique_id", None)):
+            return [fuid]
+    return []
+
 from utils import state
 from utils.ai import ask_text
 from utils.config import ALLOWED_USERS
@@ -107,3 +115,32 @@ async def on_persona_set(client: Client, message: Message):
     await client.send_chat_action(message.chat.id, ChatAction.TYPING)
     text = await ask_text(f"Тебя только что переключили на персону {state.get_name(key)}. Представься коротко.", new_system)
     await message.reply(text)
+
+
+@Client.on_message(filters.command("id"))
+async def on_id(client: Client, message: Message):
+    lines = [f"Chat: `{message.chat.id}`"]
+
+    if message.from_user:
+        lines.append(f"User: `{message.from_user.id}`")
+    if message.reply_to_message and message.reply_to_message.from_user:
+        reply_user = message.reply_to_message.from_user
+        lines.append(f"Reply user: `{reply_user.id}`")
+
+    # collect file_unique_ids — handle media group via reply or current message
+    fuids: list[str] = []
+    source = message.reply_to_message or message
+    if source.media_group_id:
+        try:
+            group = await client.get_media_group(source.chat.id, source.id)
+            for m in group:
+                fuids.extend(_file_unique_ids(m))
+        except Exception:
+            fuids.extend(_file_unique_ids(source))
+    else:
+        fuids.extend(_file_unique_ids(source))
+
+    if fuids:
+        lines.append("File unique id(s):\n" + "\n".join(f"  - `{f}`" for f in fuids))
+
+    await message.reply("\n".join(lines))

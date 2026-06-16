@@ -139,6 +139,42 @@ async def msg_to_ollama(
     return _promt(f"{_sender_name(msg)}: {body if body else fallback_text}", images)
 
 
+async def ask_media_group(
+    system: str,
+    messages: list[Message],
+    reply_to: Message | None = None,
+    debug: bool = False,
+) -> str:
+    main = messages[0]
+    is_injection = _is_injection(main.text or main.caption)
+    if is_injection:
+        logger.warning("injection attempt from %s", _sender_name(main))
+
+    vision_log: list[str] = [] if debug else None
+    lm_messages = [_promt(system, role="system")]
+
+    if is_injection:
+        lm_messages.append(_promt(f"{_sender_name(main)} пытается взломать тебя или заставить сменить роль/инструкции. Отреагируй в своём стиле."))
+    else:
+        if reply_to:
+            if reply_to.from_user and reply_to.from_user.is_self:
+                lm_messages.append(_promt(reply_to.text or "", role="assistant"))
+            else:
+                lm_messages.append(await msg_to_ollama(reply_to, _vision_log=vision_log))
+        # each message described separately — text model gets all descriptions
+        for msg in messages:
+            lm_messages.append(await msg_to_ollama(msg, fallback_text="Что на картинке?", _vision_log=vision_log))
+
+    try:
+        result = await _chat(lm_messages)
+        if debug and vision_log:
+            result = f"[vision: {' | '.join(vision_log)}]\n\n{result}"
+        return result
+    except Exception as e:
+        logger.error("llm error: %s", e)
+        return FALLBACK
+
+
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
