@@ -1,7 +1,10 @@
 import asyncio
 import json
+import logging
 import os
 from typing import Callable, Awaitable
+
+logger = logging.getLogger(__name__)
 
 _path: str = "data/media_cache.json"
 _data: dict[str, str] = {}
@@ -12,9 +15,13 @@ def init(path: str = "data/media_cache.json") -> None:
     global _path, _data
     _path = path
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    abs_path = os.path.abspath(path)
     if os.path.exists(path):
         with open(path, "r", encoding="utf-8") as f:
             _data = json.load(f)
+        logger.warning("Media cache loaded: %d entries from %s", len(_data), abs_path)
+    else:
+        logger.warning("Media cache: file not found at %s, starting empty", abs_path)
 
 
 def _save() -> None:

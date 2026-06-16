@@ -143,8 +143,8 @@ async def on_id(client: Client, message: Message):
     if fuids:
         fuid_lines = []
         for f in fuids:
-            desc = media_cache.get(f)
             entry = f"  - `{f}`"
+            desc = media_cache.get(f)
             if desc:
                 entry += f": {desc}"
             fuid_lines.append(entry)
