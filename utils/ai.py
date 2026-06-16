@@ -16,6 +16,7 @@ from utils.config import (
 )
 from utils.images import resize_image
 from utils.animations import extract_gif_frames
+from utils import media_cache
 
 logger = logging.getLogger(__name__)
 
@@ -88,8 +89,8 @@ async def _extract_media(msg: Message) -> tuple[list[str], str]:
     return images, extra
 
 
-async def _describe_images(images: list[str], context: str = "") -> str:
-    prompt = f"Сообщение: «{context}»\n\nОпиши что на изображениях с учётом контекста. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков." if context else "Опиши что на изображениях. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков."
+async def _describe_images(images: list[str]) -> str:
+    prompt = "Опиши что на изображениях. Извлеки текст если есть. Отвечай кратко, одним абзацем, без markdown и заголовков."
     parts = [{"type": "text", "text": prompt}]
     parts += [{"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{img}"}} for img in images]
     try:
@@ -103,6 +104,14 @@ async def _describe_images(images: list[str], context: str = "") -> str:
         return ""
 
 
+def _file_unique_id(msg: Message) -> str | None:
+    for attr in ("photo", "sticker", "animation", "video"):
+        obj = getattr(msg, attr, None)
+        if obj:
+            return getattr(obj, "file_unique_id", None)
+    return None
+
+
 async def msg_to_ollama(
     msg: Message,
     fallback_text: str = "Что на картинке?",
@@ -114,8 +123,11 @@ async def msg_to_ollama(
         if LLM_VISION_MODE == "false":
             images = []
         elif LLM_VISION_MODE == "separate":
-            context = msg.text or msg.caption or ""
-            description = await _describe_images(images, context)
+            fuid = _file_unique_id(msg)
+            if fuid:
+                description = await media_cache.get_or_compute(fuid, lambda: _describe_images(images))
+            else:
+                description = await _describe_images(images)
             if description:
                 if _vision_log is not None:
                     _vision_log.append(description)

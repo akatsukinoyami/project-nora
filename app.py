@@ -3,7 +3,7 @@ import logging
 
 from pyrogram import Client, idle
 
-from utils import state
+from utils import state, media_cache
 from utils.chats import Chats
 from utils.config import API_ID, API_HASH, BOTS, PERSONAS_DIR, PERSONA_KEY
 
@@ -45,6 +45,7 @@ async def _main():
 
     state.load_personas(PERSONAS_DIR)
     logging.warning("Personas loaded: %s", [k for k, _ in state.list_personas()])
+    media_cache.init()
 
     clients = [_make_client(name, cfg) for name, cfg in BOTS.items()]
     await asyncio.gather(*[_start(c) for c in clients])
