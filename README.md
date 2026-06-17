@@ -84,6 +84,7 @@ personas - list all available personas
 persona_set - set persona for this chat (admin)
 chats - download db.json (admin, private only)
 id - show chat id, user id, and file_unique_id(s) with cached vision description
+reload_cache - reload media_cache.json from disk (admin, private only)
 ```
 
 ### Personas
@@ -204,6 +205,7 @@ personas - список всех доступных персон
 persona_set - сменить персону для этого чата (админ)
 chats - скачать db.json (админ, только в личке)
 id - показать id чата, пользователя и file_unique_id(s) с кешированным описанием
+reload_cache - перезагрузить media_cache.json с диска (админ, только в личке)
 ```
 
 ### Персоны
