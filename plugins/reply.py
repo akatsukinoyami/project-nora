@@ -7,7 +7,7 @@ from pyrogram.enums import ChatAction
 from pyrogram.types import Message
 
 from utils import state
-from utils.ai import ask, ask_media_group
+from utils.ai import ask, ask_media_group, history_text
 from utils.config import ALLOWED_USERS, RANDOM_REPLY_CHANCE
 
 _seen_groups: set[str] = set()
@@ -32,12 +32,12 @@ async def _keep_typing(client: Client, chat_id: int, stop: asyncio.Event):
             pass
 
 
-async def _send(message: Message, text: str) -> None:
+async def _send(message: Message, text: str) -> Message:
     try:
-        await message.reply(text)
+        return await message.reply(text)
     except Exception as e:
         if "MESSAGE_EMPTY" in str(e):
-            await message.reply("*нарочито молчит*")
+            return await message.reply("*нарочито молчит*")
         else:
             raise
 
@@ -69,6 +69,17 @@ _trigger = filters.mentioned | reply_to_me | filters.private | name_called | ran
 _media = filters.text | filters.photo | filters.sticker | filters.animation | filters.video
 
 
+@Client.on_message(_media & chat_allowed, group=1)
+async def on_history(client: Client, message: Message):
+    if message.from_user and message.from_user.is_self:
+        return
+    try:
+        text = await history_text(message)
+    except Exception:
+        text = message.text or message.caption or ""
+    client.chats.add_history(message.chat.id, message.id, "user", text)
+
+
 @Client.on_message(_media & filters.media_group & _trigger & chat_allowed & ~filters.bot)
 async def on_media_group(client: Client, message: Message):
     gid = message.media_group_id
@@ -92,11 +103,14 @@ async def on_media_group(client: Client, message: Message):
 
     try:
         debug = client.debug_vision and _is_admin_private(message)
-        text = await ask_media_group(system, group_messages, reply_to=message.reply_to_message, debug=debug)
+        text = await ask_media_group(
+            system, group_messages, reply_to=message.reply_to_message, debug=debug, chats=client.chats
+        )
     finally:
         stop.set()
 
-    await _send(message, text)
+    sent = await _send(message, text)
+    client.chats.add_history(message.chat.id, sent.id, "assistant", text)
 
 
 @Client.on_message(_media & ~filters.media_group & _trigger & chat_allowed & ~filters.bot)
@@ -112,8 +126,11 @@ async def on_reply(client: Client, message: Message):
 
     try:
         debug = client.debug_vision and _is_admin_private(message)
-        text = await ask(system, message, reply_to=message.reply_to_message, debug=debug)
+        text = await ask(
+            system, message, reply_to=message.reply_to_message, debug=debug, chats=client.chats
+        )
     finally:
         stop.set()
 
-    await _send(message, text)
+    sent = await _send(message, text)
+    client.chats.add_history(message.chat.id, sent.id, "assistant", text)

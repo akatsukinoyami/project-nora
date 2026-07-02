@@ -3,6 +3,8 @@ import os
 
 from pyrogram.types import Message
 
+HISTORY_LIMIT = 40
+
 
 class Chats:
     def __init__(self, path: str):
@@ -63,3 +65,14 @@ class Chats:
         user["name"] = f"{u.first_name or ''} {u.last_name or ''}".strip() or uid
 
         self._save()
+
+    def add_history(self, chat_id: int, msg_id: int, role: str, text: str) -> None:
+        history = self._chat(chat_id).setdefault("history", {})
+        history[str(msg_id)] = {"role": role, "text": text}
+        while len(history) > HISTORY_LIMIT:
+            del history[next(iter(history))]
+        self._save()
+
+    def get_history(self, chat_id: int) -> list[dict]:
+        history = self._data["chats"].get(str(chat_id), {}).get("history", {})
+        return list(history.values())
